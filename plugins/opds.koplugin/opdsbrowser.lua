@@ -691,14 +691,14 @@ function OPDSBrowser:showDownloads(item)
             local index = (i-1)*downloadsperline + j
             local acquisition = acquisitions[index]
             if acquisition then
-                local filetype = acquisition.href:match(".*%/[^%.]*%.(.*)")
-                logger.dbg("Filetype for download is", filetype)
-                if not DocumentRegistry:hasProvider("dummy."..filetype) then
-                    filetype = nil
-                end
-                if not filetype and DocumentRegistry:hasProvider(nil, acquisition.type) then
+                local suffix = util.getFileNameSuffix(acquisition.href)
+                local filetype = nil
+                if DocumentRegistry:hasProvider(nil, acquisition.type) then
                     filetype = DocumentRegistry:mimeToExt(acquisition.type)
+                elseif DocumentRegistry:hasProvider("dummy."..suffix) then
+                    filetype = suffix
                 end
+                logger.dbg("Filetype for download is", filetype)
 
                 if filetype then
                     filetype = string.lower(filetype)
