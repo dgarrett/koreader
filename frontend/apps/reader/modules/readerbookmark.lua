@@ -889,16 +889,16 @@ function ReaderBookmark:renameBookmark(item, from_highlight)
     else
         bookmark = item
     end
-    local input_text = bookmark.text_orig
-    if Device:hasClipboard() then
-        Device.input.setClipboardText(bookmark.text_orig)
-        -- TODO only clear text if new highlight
-        input_text = ""
-        -- TODO needs translation
-        UIManager:show(Notification:new{
-            text = _("Highlighted text has been copied to clipboard. Long-press to paste."),
-        })
-    end
+    local input_text = self:isHighlightAutoText(bookmark) and "" or bookmark.text_orig
+    -- if Device:hasClipboard() then
+    --     Device.input.setClipboardText(bookmark.text_orig)
+    --     -- TODO only clear text if new highlight
+    --     -- input_text = self:isHighlightAutoText(bookmark) and "" or bookmark.text_orig
+    --     -- TODO needs translation
+    --     UIManager:show(Notification:new{
+    --         text = _("Highlighted text has been copied to clipboard. Long-press to paste."),
+    --     })
+    -- end
     self.input = InputDialog:new{
         title = _("Edit note"),
         description = "   " .. T(_("Page: %1"), bookmark.mandatory) .. "     " .. T(_("Time: %1"), bookmark.datetime),
@@ -912,6 +912,29 @@ function ReaderBookmark:renameBookmark(item, from_highlight)
                     text = _("Cancel"),
                     callback = function()
                         UIManager:close(self.input)
+                    end,
+                },
+                {
+                    text = _("Copy Highlight"),
+                    callback = function()
+                        if Device:hasClipboard() then
+                            -- self.input:setInputValue()
+                            Device.input.setClipboardText(self:getBookmarkAutoText(bookmark, true))
+                            -- TODO needs translation
+                            UIManager:show(Notification:new{
+                                text = _("Highlighted text has been copied to clipboard. Long-press to paste."),
+                            })
+                        else
+                            UIManager:show(Notification:new{
+                                text = _("Device doesn't support clipboard."),
+                            })
+                        end
+                    end,
+                },
+                {
+                    text = _("Insert Highlight"),
+                    callback = function()
+                        self.input._input_widget:addChars(self:getBookmarkAutoText(bookmark, true))
                     end,
                 },
                 {
