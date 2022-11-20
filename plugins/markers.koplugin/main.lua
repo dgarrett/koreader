@@ -28,6 +28,10 @@ function Markers:init()
         {
             glyph = "",
             search_term = "Macbeth"
+        },
+        {
+            glyph = "test",
+            search_term = "Malcolm"
         }
     }
 
@@ -62,16 +66,15 @@ function Markers:onViewUpdate(i)
 
     print("===============onViewUpdate", i)
     local page = self.view.state.page
-    for _, target in ipairs(self.targets) do
+    for i, target in ipairs(self.targets) do
         -- TODO: only search pages n-1, n and n+1
         local search_results, words_found = self.ui.document:findText(target.search_term, 0, 0, false, page, nil, 10)
-        self.ui.highlight:clear()
         logger.dbg("=============onViewUpdate", search_results)
-        for i, found in ipairs(search_results) do
+        for j, found in ipairs(search_results) do
             local boxes = self.ui.document:getScreenBoxesFromPositions(found["start"], found["end"], true)
-            for j, box in ipairs(boxes) do
-                logger.dbg("=============onViewUpdate found", j, box)
-                self.icons[i+j - 1] = {
+            for k, box in ipairs(boxes) do
+                logger.dbg("=============onViewUpdate found", k, box)
+                self.icons[i+j+k - 2] = {
                     widget = TextWidget:new{
                         text = target.glyph,
                         face = self.font
@@ -82,6 +85,7 @@ function Markers:onViewUpdate(i)
             end
         end
     end
+    self.ui.highlight:clear()
 end
 
 function Markers:onPosUpdate(pos, pageno)
