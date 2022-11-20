@@ -20,8 +20,16 @@ function Markers:init()
     self.font = Font:getFace("nerdfonts/symbols.ttf", 16)
 
     -- TODO: make these customizable lists per book
-    self.glyph = ""
-    self.search_term = "Duncan"
+    self.targets = {
+        {
+            glyph = "",
+            search_term = "Duncan"
+        },
+        {
+            glyph = "",
+            search_term = "Macbeth"
+        }
+    }
 
     self.ui.menu:registerToMainMenu(self)
     self.view:registerViewModule("markers", self)
@@ -54,23 +62,24 @@ function Markers:onViewUpdate(i)
 
     print("===============onViewUpdate", i)
     local page = self.view.state.page
-    -- TODO: only search pages n-1, n and n+1
-    local retval, words_found = self.ui.document:findText(self.search_term, 0, 0, false, page, nil, 10)
-    self.ui.highlight:clear()
-    logger.dbg("=============onViewUpdate", retval)
-    for i, value in ipairs(retval) do
-        local boxes = self.ui.document:getScreenBoxesFromPositions(retval[i]["start"], retval[i]["end"], true)
-        logger.dbg("=============onViewUpdate loop", boxes[i])
-        for j, box in ipairs(boxes) do
-            logger.dbg("=============onViewUpdate found", j, box)
-            self.icons[i+j - 1] = {
-                widget = TextWidget:new{
-                    text = self.glyph,
-                    face = self.font
-                },
-                x_off = box.x + (box.w / 2) - Screen:scaleBySize(8), -- half of icon
-                y_off = box.y - Screen:scaleBySize(12)
-            }
+    for _, target in ipairs(self.targets) do
+        -- TODO: only search pages n-1, n and n+1
+        local search_results, words_found = self.ui.document:findText(target.search_term, 0, 0, false, page, nil, 10)
+        self.ui.highlight:clear()
+        logger.dbg("=============onViewUpdate", search_results)
+        for i, found in ipairs(search_results) do
+            local boxes = self.ui.document:getScreenBoxesFromPositions(found["start"], found["end"], true)
+            for j, box in ipairs(boxes) do
+                logger.dbg("=============onViewUpdate found", j, box)
+                self.icons[i+j - 1] = {
+                    widget = TextWidget:new{
+                        text = target.glyph,
+                        face = self.font
+                    },
+                    x_off = box.x + (box.w / 2) - Screen:scaleBySize(8), -- half of icon
+                    y_off = box.y - Screen:scaleBySize(12)
+                }
+            end
         end
     end
 end
